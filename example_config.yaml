@@ -1,0 +1,40 @@
+credentials:
+    Neo4j:
+        uri: 
+        user: neo4j
+        password: 
+    Airtable:
+        token: 
+        base: 
+        table: 
+cypher_queries:
+    nodes:
+        CEO:
+            create_CEO: |
+                WITH $rows AS rows
+                UNWIND rows AS row 
+                MERGE(p:CEO {name:row.CEO})
+        member:
+            create_member: |
+                WITH $rows AS rows
+                UNWIND rows AS row
+                MERGE(p:Member {name:row.Member})
+                SET p.Status = 'AVAILABLE'
+            update_member: |             
+                WITH $rows AS rows
+                UNWIND rows AS row
+                MATCH(p:Member {name:row.Member})
+                SET p.Status = row.Status
+                WITH p,row
+                MATCH (p)-[r]-()
+                DELETE r
+    relationships:
+        update_teams: |
+            WITH $rows AS rows
+            UNWIND rows AS row
+            MATCH(p:Member {name:row.Member})
+            WITH p,row
+            MATCH(l:CEO{name:row.CEO})
+            WITH l,p,row
+            CREATE (p) - [:IN_GROUP] -> (l)
+            
