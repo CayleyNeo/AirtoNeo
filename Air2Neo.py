@@ -22,8 +22,7 @@ class AirtoNeo:
         try:
             # Connecting to the database
             self.AirtableConnection = Api(self.__AirtableToken)
-            print(f'You are connected to Airtable as user: {self.AirtableConnection.whoami()}')
-            self.Airtable = atconnect.table(self.__AirtableBaseId,self.__AirtableTableId)
+            self.Airtable = self.AirtableConnection.table(self.__AirtableBaseId,self.__AirtableTableId)
         except Exception as e:
             print(f'Airtable connection failed with error: {e}.')
             self.Airtable = None
@@ -32,7 +31,6 @@ class AirtoNeo:
         # Setting up the Neo4j connection or, if failed, returning the error to the client
         try:    
             self.Neo4jGraph = Neo4jInstance(self.__Neo4jURI, self.__Neo4jusername, self.__Neo4jpassword)
-            print(f'You are connected to Neo4j.')
         except Exception as e:
             print(f'Neo4j connection failed with error: {e}')
             self.Neo4jGraph = None
@@ -45,6 +43,7 @@ class AirtoNeo:
         It expects a dictionary in the form of {cypher_query:dataframe} where the cypher_query is a string.
         It will run the cypher query on each dataframe.
         If you want to run the same cypher query on multiple dataframes, change the format to {cypher_query:[dataframes]}
+        If you want to run a write query without a dataframe parameter, just set the dataframe value to none.
         If you want to see a print statement for each cypher statement, set verbose = True.
         '''
         for query in load_dict:
@@ -57,3 +56,5 @@ class AirtoNeo:
                 result = self.Neo4jGraph.execute_write_query_with_data(query,load_dict[query])
                 if verbose:
                     print(result)    
+            elif load_dict[query] is None:
+                result = self.Neo4jGraph.execute_write_query(query)
